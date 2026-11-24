@@ -1,6 +1,7 @@
 import type {
   CodeSnippet,
   FocusStats,
+  GitHubRepoItem,
   ProjectItem,
   TaskPriority,
   TodoTask,
@@ -182,4 +183,65 @@ export function validateBackupPayload(raw: unknown): VaultBackupPayload | null {
     tasks,
     focusStats,
   };
+}
+
+const EXCLUDED_REPO_NAMES = new Set(['matrix12-dot', 'stark-hub']);
+
+function normalizeHomepageUrl(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) {
+    return sanitizeUrl(trimmed);
+  }
+  // If GitHub homepage lacks protocol and has no dangerous scheme prefix, normalize to https://
+  if (!trimmed.includes(':')) {
+    return sanitizeUrl(`https://${trimmed}`);
+  }
+  return null;
+}
+
+export function sanitizeGitHubRepos(raw: unknown): GitHubRepoItem[] {
+  if (!Array.isArray(raw)) return [];
+
+  const result: GitHubRepoItem[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') continue;
+    const repo = entry as Record<string, unknown>;
+
+    const rawName = sanitizeText(repo.name, 120);
+    if (!rawName || EXCLUDED_REPO_NAMES.has(rawName.toLowerCase())) {
+      continue;
+    }
+
+    const htmlUrl = sanitizeUrl(repo.html_url ?? repo.htmlUrl);
+    if (!htmlUrl) continue;
+
+    const rawDesc = sanitizeText(repo.description, 320);
+    const language = sanitizeText(repo.language, 48) || null;
+    const homepageUrl = normalizeHomepageUrl(repo.homepage ?? repo.homepageUrl);
+
+    result.push({
+      id: typeof repo.id === 'number' ? repo.id : result.length + 1,
+      name: rawName,
+      fullName: sanitizeText(repo.full_name ?? repo.fullName, 160) || rawName,
+      description: rawDesc || 'مشروع برمجي مفتوح المصدر',
+      htmlUrl,
+      homepageUrl,
+      language,
+      stargazersCount:
+        typeof (repo.stargazers_count ?? repo.stargazersCount) === 'number'
+          ? Math.max(0, Math.floor(Number(repo.stargazers_count ?? repo.stargazersCount)))
+          : 0,
+      forksCount:
+        typeof (repo.forks_count ?? repo.forksCount) === 'number'
+          ? Math.max(0, Math.floor(Number(repo.forks_count ?? repo.forksCount)))
+          : 0,
+      updatedAt: sanitizeText(repo.updated_at ?? repo.updatedAt, 40) || new Date().toISOString(),
+      archived: Boolean(repo.archived),
+      fork: Boolean(repo.fork),
+    });
+  }
+
+  return result;
 }

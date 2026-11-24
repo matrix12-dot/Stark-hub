@@ -2,6 +2,10 @@ import type { CodeSnippet, FocusStats, ProjectItem, TodoTask } from '../types/hu
 
 export const DEFAULT_PIN = '2026';
 
+export const GITHUB_USERNAME = 'matrix12-dot';
+export const GITHUB_REPOS_API_URL = `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`;
+export const GITHUB_CACHE_TTL_MS = 10 * 60 * 1000;
+
 export const STORAGE_KEYS = {
   PIN_HASH: 'stark_hub_pin_hash_v1',
   IS_CUSTOM_PIN: 'stark_hub_custom_pin_v1',
@@ -10,6 +14,7 @@ export const STORAGE_KEYS = {
   QUICK_NOTE: 'stark_hub_quick_note_v1',
   TASKS: 'stark_hub_tasks_v1',
   FOCUS_STATS: 'stark_hub_focus_stats_v1',
+  GITHUB_REPOS_CACHE: 'stark_hub_github_repos_cache_v1',
 } as const;
 
 export const HERO_VISUAL_URL = '/src/assets/images/hero_stark_horizon_1795545754011.jpg';

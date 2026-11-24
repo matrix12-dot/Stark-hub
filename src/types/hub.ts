@@ -52,3 +52,23 @@ export interface PingState {
   latencyMs?: number;
   checkedAt?: string;
 }
+
+export interface GitHubRepoItem {
+  id: number;
+  name: string;
+  fullName: string;
+  description: string;
+  htmlUrl: string;
+  homepageUrl: string | null;
+  language: string | null;
+  stargazersCount: number;
+  forksCount: number;
+  updatedAt: string;
+  archived: boolean;
+  fork: boolean;
+}
+
+export interface GitHubCachePayload {
+  fetchedAt: number;
+  repos: GitHubRepoItem[];
+}
